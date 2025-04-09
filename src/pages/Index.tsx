@@ -16,6 +16,7 @@ const Index = () => {
   const [generated, setGenerated] = useState(false);
   const [totalCasesGenerated, setTotalCasesGenerated] = useState(0);
   const [showAdditionalInput, setShowAdditionalInput] = useState(false);
+  const [currentBatchCount, setCurrentBatchCount] = useState(0);
   const navigate = useNavigate();
 
   const handleGenerateLabels = () => {
@@ -31,18 +32,20 @@ const Index = () => {
       return;
     }
 
+    setCurrentBatchCount(count);
     setTotalCasesGenerated((prev) => prev + count);
     setGenerated(true);
     toast.success(`Generated ${count} labels for LR Number: ${lrNumber}`);
   };
 
   const handleGenerateMore = () => {
-    const count = parseInt(additionalCount || caseCount);
+    const count = parseInt(additionalCount);
     if (isNaN(count) || count <= 0 || count > 100) {
       toast.error("Please enter a valid number of additional cases (1-100)");
       return;
     }
 
+    setCurrentBatchCount(count);
     setTotalCasesGenerated((prev) => prev + count);
     setShowAdditionalInput(false);
     setAdditionalCount("");
@@ -55,6 +58,7 @@ const Index = () => {
     setAdditionalCount("");
     setGenerated(false);
     setTotalCasesGenerated(0);
+    setCurrentBatchCount(0);
     setShowAdditionalInput(false);
   };
 
@@ -133,8 +137,8 @@ const Index = () => {
                 
                 <LabelGenerator 
                   lrNumber={lrNumber}
-                  caseCount={parseInt(additionalCount || caseCount)}
-                  startingCaseNumber={totalCasesGenerated - parseInt(additionalCount || caseCount) + 1}
+                  caseCount={currentBatchCount}
+                  startingCaseNumber={totalCasesGenerated - currentBatchCount + 1}
                 />
               </>
             )}
