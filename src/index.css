@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,37 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Print styles */
+@media print {
+  @page {
+    size: auto;
+    margin: 10mm;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  .container * {
+    visibility: hidden;
+  }
+  
+  #root > div > div > div > div > div:nth-child(2) * {
+    visibility: visible;
+  }
+  
+  #root > div > div > div > div > div:nth-child(2) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* Hide buttons when printing */
+  button {
+    display: none !important;
   }
 }
