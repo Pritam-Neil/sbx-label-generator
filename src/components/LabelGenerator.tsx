@@ -5,11 +5,19 @@ import Barcode from "react-barcode";
 interface LabelGeneratorProps {
   lrNumber: string;
   caseCount: number;
+  startingCaseNumber?: number;
 }
 
-const LabelGenerator: React.FC<LabelGeneratorProps> = ({ lrNumber, caseCount }) => {
-  // Generate an array of numbers from 1 to caseCount
-  const caseNumbers = Array.from({ length: caseCount }, (_, i) => i + 1);
+const LabelGenerator: React.FC<LabelGeneratorProps> = ({ 
+  lrNumber, 
+  caseCount, 
+  startingCaseNumber = 1 
+}) => {
+  // Generate an array of numbers from startingCaseNumber to startingCaseNumber + caseCount - 1
+  const caseNumbers = Array.from(
+    { length: caseCount }, 
+    (_, i) => startingCaseNumber + i
+  );
 
   return (
     <div className="LabelGenerator">
@@ -30,7 +38,7 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({ lrNumber, caseCount }) 
           >
             <div className="text-center mb-2">
               <p className="font-bold text-lg">{lrNumber}-{caseNum}</p>
-              <p className="text-sm text-gray-600">Case {caseNum} of {caseCount}</p>
+              <p className="text-sm text-gray-600">Case {caseNum} of {startingCaseNumber + caseCount - 1}</p>
             </div>
             
             <div className="flex justify-center my-3">

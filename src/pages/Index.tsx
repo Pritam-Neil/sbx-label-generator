@@ -13,6 +13,7 @@ const Index = () => {
   const [lrNumber, setLrNumber] = useState("");
   const [caseCount, setCaseCount] = useState("");
   const [generated, setGenerated] = useState(false);
+  const [totalCasesGenerated, setTotalCasesGenerated] = useState(0);
   const navigate = useNavigate();
 
   const handleGenerateLabels = () => {
@@ -28,8 +29,27 @@ const Index = () => {
       return;
     }
 
+    setTotalCasesGenerated((prev) => prev + count);
     setGenerated(true);
     toast.success(`Generated ${count} labels for LR Number: ${lrNumber}`);
+  };
+
+  const handleGenerateMore = () => {
+    const count = parseInt(caseCount);
+    if (isNaN(count) || count <= 0 || count > 100) {
+      toast.error("Please enter a valid number of cases (1-100)");
+      return;
+    }
+
+    setTotalCasesGenerated((prev) => prev + count);
+    toast.success(`Generated ${count} more labels for LR Number: ${lrNumber}`);
+  };
+
+  const handleReset = () => {
+    setLrNumber("");
+    setCaseCount("");
+    setGenerated(false);
+    setTotalCasesGenerated(0);
   };
 
   return (
@@ -75,6 +95,7 @@ const Index = () => {
               <LabelGenerator 
                 lrNumber={lrNumber}
                 caseCount={parseInt(caseCount)}
+                startingCaseNumber={totalCasesGenerated - parseInt(caseCount) + 1}
               />
             )}
           </CardContent>
@@ -84,16 +105,25 @@ const Index = () => {
               <>
                 <Button 
                   variant="outline" 
-                  onClick={() => setGenerated(false)}
+                  onClick={handleReset}
                 >
                   Generate New Labels
                 </Button>
-                <Button 
-                  onClick={() => window.print()}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  Print Labels
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    variant="outline"
+                    onClick={handleGenerateMore}
+                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                  >
+                    Generate More
+                  </Button>
+                  <Button 
+                    onClick={() => window.print()}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Print Labels
+                  </Button>
+                </div>
               </>
             ) : (
               <>
