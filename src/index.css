@@ -112,15 +112,13 @@
     visibility: hidden;
   }
   
-  .container * {
-    visibility: hidden;
-  }
-  
-  #root > div > div > div > div > div:nth-child(2) * {
+  /* Make only the label content visible */
+  .container .LabelGenerator,
+  .container .LabelGenerator * {
     visibility: visible;
   }
   
-  #root > div > div > div > div > div:nth-child(2) {
+  .container .LabelGenerator {
     position: absolute;
     left: 0;
     top: 0;

@@ -12,7 +12,7 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({ lrNumber, caseCount }) 
   const caseNumbers = Array.from({ length: caseCount }, (_, i) => i + 1);
 
   return (
-    <div>
+    <div className="LabelGenerator">
       <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-md">
         <p className="text-sm text-blue-700">
           Generated {caseCount} labels for LR Number: <strong>{lrNumber}</strong>
