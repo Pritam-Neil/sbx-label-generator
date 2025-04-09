@@ -12,8 +12,10 @@ import AppHeader from "@/components/AppHeader";
 const Index = () => {
   const [lrNumber, setLrNumber] = useState("");
   const [caseCount, setCaseCount] = useState("");
+  const [additionalCount, setAdditionalCount] = useState("");
   const [generated, setGenerated] = useState(false);
   const [totalCasesGenerated, setTotalCasesGenerated] = useState(0);
+  const [showAdditionalInput, setShowAdditionalInput] = useState(false);
   const navigate = useNavigate();
 
   const handleGenerateLabels = () => {
@@ -35,21 +37,25 @@ const Index = () => {
   };
 
   const handleGenerateMore = () => {
-    const count = parseInt(caseCount);
+    const count = parseInt(additionalCount || caseCount);
     if (isNaN(count) || count <= 0 || count > 100) {
-      toast.error("Please enter a valid number of cases (1-100)");
+      toast.error("Please enter a valid number of additional cases (1-100)");
       return;
     }
 
     setTotalCasesGenerated((prev) => prev + count);
+    setShowAdditionalInput(false);
+    setAdditionalCount("");
     toast.success(`Generated ${count} more labels for LR Number: ${lrNumber}`);
   };
 
   const handleReset = () => {
     setLrNumber("");
     setCaseCount("");
+    setAdditionalCount("");
     setGenerated(false);
     setTotalCasesGenerated(0);
+    setShowAdditionalInput(false);
   };
 
   return (
@@ -92,11 +98,45 @@ const Index = () => {
                 </div>
               </div>
             ) : (
-              <LabelGenerator 
-                lrNumber={lrNumber}
-                caseCount={parseInt(caseCount)}
-                startingCaseNumber={totalCasesGenerated - parseInt(caseCount) + 1}
-              />
+              <>
+                {showAdditionalInput && (
+                  <div className="mb-6 space-y-2 p-4 bg-green-50 border border-green-100 rounded-md">
+                    <Label htmlFor="additionalCount" className="text-base">How many more labels do you need?</Label>
+                    <div className="flex space-x-2">
+                      <Input
+                        id="additionalCount"
+                        type="number"
+                        placeholder="Enter number of additional cases"
+                        value={additionalCount}
+                        onChange={(e) => setAdditionalCount(e.target.value)}
+                        min="1"
+                        max="100"
+                        className="text-lg"
+                        autoFocus
+                      />
+                      <Button 
+                        onClick={handleGenerateMore}
+                        className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                        disabled={!additionalCount}
+                      >
+                        Generate
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowAdditionalInput(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                <LabelGenerator 
+                  lrNumber={lrNumber}
+                  caseCount={parseInt(additionalCount || caseCount)}
+                  startingCaseNumber={totalCasesGenerated - parseInt(additionalCount || caseCount) + 1}
+                />
+              </>
             )}
           </CardContent>
 
@@ -112,8 +152,9 @@ const Index = () => {
                 <div className="flex space-x-2">
                   <Button 
                     variant="outline"
-                    onClick={handleGenerateMore}
+                    onClick={() => setShowAdditionalInput(true)}
                     className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    disabled={showAdditionalInput}
                   >
                     Generate More
                   </Button>
