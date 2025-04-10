@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; 
@@ -8,21 +8,56 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import LabelGenerator from "@/components/LabelGenerator";
 import AppHeader from "@/components/AppHeader";
+import { Box, Package, Pallet, Edit } from "lucide-react";
 
 const Index = () => {
-  const [lrNumber, setLrNumber] = useState("");
+  const [prefix, setPrefix] = useState("");
   const [caseCount, setCaseCount] = useState("");
   const [additionalCount, setAdditionalCount] = useState("");
   const [generated, setGenerated] = useState(false);
   const [totalCasesGenerated, setTotalCasesGenerated] = useState(0);
   const [showAdditionalInput, setShowAdditionalInput] = useState(false);
   const [currentBatchCount, setCurrentBatchCount] = useState(0);
+  const [labelType, setLabelType] = useState("Custom");
+  
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const state = location.state;
+    if (state?.type) {
+      setLabelType(state.type);
+      if (state.prefix) {
+        setPrefix(state.prefix);
+      }
+    } else {
+      // If navigated here directly without selecting a type
+      navigate('/');
+    }
+  }, [location, navigate]);
+
+  const getIcon = () => {
+    switch(labelType) {
+      case "Crates": return <Box className="h-6 w-6" />;
+      case "Cartons": return <Package className="h-6 w-6" />;
+      case "Pallets": return <Pallet className="h-6 w-6" />;
+      default: return <Edit className="h-6 w-6" />;
+    }
+  };
+
+  const getCardColor = () => {
+    switch(labelType) {
+      case "Crates": return "bg-blue-50 border-blue-100";
+      case "Cartons": return "bg-green-50 border-green-100";
+      case "Pallets": return "bg-orange-50 border-orange-100";
+      default: return "bg-purple-50 border-purple-100";
+    }
+  };
 
   const handleGenerateLabels = () => {
     // Basic validation
-    if (!lrNumber.trim()) {
-      toast.error("Please enter a valid LR Number");
+    if (!prefix.trim() && labelType === "Custom") {
+      toast.error("Please enter a valid Prefix");
       return;
     }
 
@@ -35,7 +70,7 @@ const Index = () => {
     setCurrentBatchCount(count);
     setTotalCasesGenerated((prev) => prev + count);
     setGenerated(true);
-    toast.success(`Generated ${count} labels for LR Number: ${lrNumber}`);
+    toast.success(`Generated ${count} labels for ${labelType}: ${prefix}`);
   };
 
   const handleGenerateMore = () => {
@@ -49,11 +84,11 @@ const Index = () => {
     setTotalCasesGenerated((prev) => prev + count);
     setShowAdditionalInput(false);
     setAdditionalCount("");
-    toast.success(`Generated ${count} more labels for LR Number: ${lrNumber}`);
+    toast.success(`Generated ${count} more labels for ${labelType}: ${prefix}`);
   };
 
   const handleReset = () => {
-    setLrNumber("");
+    setPrefix("");
     setCaseCount("");
     setAdditionalCount("");
     setGenerated(false);
@@ -62,37 +97,55 @@ const Index = () => {
     setShowAdditionalInput(false);
   };
 
+  const isReadOnlyPrefix = labelType !== "Custom";
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AppHeader />
       
       <div className="container mx-auto py-8 px-4">
-        <Card className="max-w-3xl mx-auto shadow-lg">
-          <CardHeader className="bg-blue-50 border-b border-blue-100">
-            <CardTitle className="text-2xl font-bold text-blue-900">YMS Label Generator</CardTitle>
-            <CardDescription>Generate sequenced barcode labels for logistics and warehouse operations</CardDescription>
+        <Card className={`max-w-3xl mx-auto shadow-lg ${getCardColor()}`}>
+          <CardHeader className="border-b">
+            <div className="flex items-center gap-3">
+              {getIcon()}
+              <div>
+                <CardTitle className="text-2xl font-bold">
+                  {labelType === "Custom" ? "Custom Label Generator" : `${labelType} Label Generator`}
+                </CardTitle>
+                <CardDescription>
+                  Generate sequenced barcode labels for {labelType.toLowerCase()} in logistics and warehouse operations
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
           
           <CardContent className="pt-6 pb-4">
             {!generated ? (
               <div className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="lrNumber" className="text-base">LR Number</Label>
+                  <Label htmlFor="prefix" className="text-base">Prefix</Label>
                   <Input
-                    id="lrNumber"
-                    placeholder="Enter LR Number (e.g. IN987098)"
-                    value={lrNumber}
-                    onChange={(e) => setLrNumber(e.target.value)}
+                    id="prefix"
+                    placeholder="Enter label prefix (e.g. SBX)"
+                    value={prefix}
+                    onChange={(e) => setPrefix(e.target.value)}
                     className="text-lg"
+                    readOnly={isReadOnlyPrefix}
+                    disabled={isReadOnlyPrefix}
                   />
+                  {isReadOnlyPrefix && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Standard prefix for {labelType} is pre-configured
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="caseCount" className="text-base">Number of Cases</Label>
+                  <Label htmlFor="caseCount" className="text-base">Number of {labelType}</Label>
                   <Input
                     id="caseCount"
                     type="number"
-                    placeholder="Enter the number of cases (max 100)"
+                    placeholder={`Enter the number of ${labelType.toLowerCase()} (max 100)`}
                     value={caseCount}
                     onChange={(e) => setCaseCount(e.target.value)}
                     min="1"
@@ -110,7 +163,7 @@ const Index = () => {
                       <Input
                         id="additionalCount"
                         type="number"
-                        placeholder="Enter number of additional cases"
+                        placeholder="Enter number of additional items"
                         value={additionalCount}
                         onChange={(e) => setAdditionalCount(e.target.value)}
                         min="1"
@@ -136,15 +189,16 @@ const Index = () => {
                 )}
                 
                 <LabelGenerator 
-                  lrNumber={lrNumber}
+                  prefix={prefix}
                   caseCount={currentBatchCount}
                   startingCaseNumber={totalCasesGenerated - currentBatchCount + 1}
+                  labelType={labelType}
                 />
               </>
             )}
           </CardContent>
 
-          <CardFooter className="flex justify-between border-t border-gray-100 pt-4">
+          <CardFooter className="flex justify-between border-t pt-4">
             {generated ? (
               <>
                 <Button 
@@ -176,12 +230,12 @@ const Index = () => {
                   variant="outline" 
                   onClick={() => navigate("/")}
                 >
-                  Reset
+                  Change Type
                 </Button>
                 <Button 
                   onClick={handleGenerateLabels}
                   className="bg-blue-600 hover:bg-blue-700"
-                  disabled={!lrNumber || !caseCount}
+                  disabled={(labelType === "Custom" && !prefix) || !caseCount}
                 >
                   Generate Labels
                 </Button>
