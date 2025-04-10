@@ -2,19 +2,22 @@
 import React from "react";
 import Barcode from "react-barcode";
 import { Box, Package, Container, Edit } from "lucide-react";
+import { formatLabel } from "@/utils/labelUtils";
 
 interface LabelGeneratorProps {
   prefix: string;
   caseCount: number;
   startingCaseNumber?: number;
   labelType: string;
+  suffixLimit?: number;
 }
 
 const LabelGenerator: React.FC<LabelGeneratorProps> = ({ 
   prefix, 
   caseCount, 
   startingCaseNumber = 1,
-  labelType = "Custom"
+  labelType = "Custom",
+  suffixLimit = 4  // Default to 4 digits if not specified
 }) => {
   // Generate an array of numbers from startingCaseNumber to startingCaseNumber + caseCount - 1
   const caseNumbers = Array.from(
@@ -40,6 +43,16 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
     }
   };
 
+  const formatCaseNumber = (caseNumber: number): string => {
+    // For custom labels, just use simple numeric formatting
+    if (labelType === "Custom") {
+      return `${prefix}-${caseNumber}`;
+    }
+    
+    // For other label types, use our advanced formatting with suffix limit
+    return formatLabel(prefix, caseNumber, suffixLimit);
+  };
+
   return (
     <div className="LabelGenerator">
       <div className={`mb-4 p-3 ${getBgColor()} rounded-md flex items-center gap-2`}>
@@ -61,15 +74,15 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
             className={`border ${getBgColor()} p-4 rounded-md print:break-inside-avoid print:mb-4 shadow-sm`}
           >
             <div className="text-center mb-2">
-              <p className="font-bold text-lg">{prefix}-{caseNum}</p>
+              <p className="font-bold text-lg">{formatCaseNumber(caseNum)}</p>
               <p className="text-sm text-gray-600">
-                {labelType} {caseNum} of {startingCaseNumber + caseCount - 1}
+                {labelType} {caseNum - startingCaseNumber + 1} of {caseCount}
               </p>
             </div>
             
             <div className="flex justify-center my-3">
               <Barcode 
-                value={`${prefix}-${caseNum}`}
+                value={formatCaseNumber(caseNum)}
                 width={2}
                 height={40}
                 fontSize={14}

@@ -6,15 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import LabelGenerator from "@/components/LabelGenerator";
-import AppHeader from "@/components/AppHeader";
+import { formatLabel, generateSuffix } from "@/utils/labelUtils";
 import { Box, Package, Container, Edit } from "lucide-react";
 
+// Persistent storage for the last generated numbers for each type
 const lastGeneratedNumbers = {
   "Crates": 0,
   "Cartons": 0,
   "Pallets": 0,
   "Custom": 0
 };
+
+// Track the last used prefix for custom labels
+let lastCustomPrefix = "";
 
 const Index = () => {
   const [prefix, setPrefix] = useState("");
@@ -25,6 +29,7 @@ const Index = () => {
   const [showAdditionalInput, setShowAdditionalInput] = useState(false);
   const [currentBatchCount, setCurrentBatchCount] = useState(0);
   const [labelType, setLabelType] = useState("Custom");
+  const [suffixLimit, setSuffixLimit] = useState(4); // Default suffix limit is 4 digits
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -38,10 +43,28 @@ const Index = () => {
       }
       
       setTotalCasesGenerated(lastGeneratedNumbers[state.type]);
+
+      // If this is a custom label and the prefix has changed, reset the counter
+      if (state.type === "Custom") {
+        if (lastCustomPrefix !== state.prefix) {
+          lastGeneratedNumbers["Custom"] = 0;
+          setTotalCasesGenerated(0);
+          lastCustomPrefix = state.prefix || "";
+        }
+      }
     } else {
       navigate('/');
     }
   }, [location, navigate]);
+
+  // When prefix changes for custom labels, reset the counter
+  useEffect(() => {
+    if (labelType === "Custom" && prefix !== lastCustomPrefix) {
+      lastGeneratedNumbers["Custom"] = 0;
+      setTotalCasesGenerated(0);
+      lastCustomPrefix = prefix;
+    }
+  }, [prefix, labelType]);
 
   const getIcon = () => {
     switch(labelType) {
@@ -107,10 +130,10 @@ const Index = () => {
   };
 
   const isReadOnlyPrefix = labelType !== "Custom";
+  const showSuffixLimit = labelType !== "Custom";
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppHeader />
       
       <div className="container mx-auto py-8 px-4">
         <Card className={`max-w-3xl mx-auto shadow-lg ${getCardColor()}`}>
@@ -148,6 +171,20 @@ const Index = () => {
                     </p>
                   )}
                 </div>
+
+                {showSuffixLimit && (
+                  <div className="space-y-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                    <Label htmlFor="suffixInfo" className="text-base">Suffix Format</Label>
+                    <div className="flex items-center">
+                      <div className="bg-white px-3 py-2 border rounded-md text-sm font-mono">
+                        {prefix}<span className="text-blue-600">{generateSuffix(1, suffixLimit)}</span> → {prefix}<span className="text-blue-600">{generateSuffix(999, suffixLimit)}</span> → {prefix}<span className="text-blue-600">{generateSuffix(10000, suffixLimit)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Using {suffixLimit}-digit suffix. When numeric limit is reached (9999), labels will continue with alphanumeric format (A001).
+                    </p>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="caseCount" className="text-base">Number of {labelType}</Label>
@@ -202,6 +239,7 @@ const Index = () => {
                   caseCount={currentBatchCount}
                   startingCaseNumber={totalCasesGenerated - currentBatchCount + 1}
                   labelType={labelType}
+                  suffixLimit={suffixLimit}
                 />
               </>
             )}
