@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,13 @@ import { toast } from "sonner";
 import LabelGenerator from "@/components/LabelGenerator";
 import AppHeader from "@/components/AppHeader";
 import { Box, Package, Container, Edit } from "lucide-react";
+
+const lastGeneratedNumbers = {
+  "Crates": 0,
+  "Cartons": 0,
+  "Pallets": 0,
+  "Custom": 0
+};
 
 const Index = () => {
   const [prefix, setPrefix] = useState("");
@@ -30,8 +36,9 @@ const Index = () => {
       if (state.prefix) {
         setPrefix(state.prefix);
       }
+      
+      setTotalCasesGenerated(lastGeneratedNumbers[state.type]);
     } else {
-      // If navigated here directly without selecting a type
       navigate('/');
     }
   }, [location, navigate]);
@@ -55,7 +62,6 @@ const Index = () => {
   };
 
   const handleGenerateLabels = () => {
-    // Basic validation
     if (!prefix.trim() && labelType === "Custom") {
       toast.error("Please enter a valid Prefix");
       return;
@@ -68,7 +74,9 @@ const Index = () => {
     }
 
     setCurrentBatchCount(count);
-    setTotalCasesGenerated((prev) => prev + count);
+    const nextTotal = lastGeneratedNumbers[labelType] + count;
+    setTotalCasesGenerated(nextTotal);
+    lastGeneratedNumbers[labelType] = nextTotal;
     setGenerated(true);
     toast.success(`Generated ${count} labels for ${labelType}: ${prefix}`);
   };
@@ -81,7 +89,9 @@ const Index = () => {
     }
 
     setCurrentBatchCount(count);
-    setTotalCasesGenerated((prev) => prev + count);
+    const nextTotal = lastGeneratedNumbers[labelType] + count;
+    setTotalCasesGenerated(nextTotal);
+    lastGeneratedNumbers[labelType] = nextTotal;
     setShowAdditionalInput(false);
     setAdditionalCount("");
     toast.success(`Generated ${count} more labels for ${labelType}: ${prefix}`);
@@ -92,7 +102,6 @@ const Index = () => {
     setCaseCount("");
     setAdditionalCount("");
     setGenerated(false);
-    setTotalCasesGenerated(0);
     setCurrentBatchCount(0);
     setShowAdditionalInput(false);
   };

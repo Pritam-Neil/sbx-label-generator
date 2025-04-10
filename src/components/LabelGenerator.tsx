@@ -61,10 +61,7 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
             className={`border ${getBgColor()} p-4 rounded-md print:break-inside-avoid print:mb-4 shadow-sm`}
           >
             <div className="text-center mb-2">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                {getIcon()}
-                <p className="font-bold text-lg">{prefix}-{caseNum}</p>
-              </div>
+              <p className="font-bold text-lg">{prefix}-{caseNum}</p>
               <p className="text-sm text-gray-600">
                 {labelType} {caseNum} of {startingCaseNumber + caseCount - 1}
               </p>
