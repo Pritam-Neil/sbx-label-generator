@@ -1,7 +1,7 @@
 
 import React from "react";
 import Barcode from "react-barcode";
-import { Box, Package, Pallet, Edit } from "lucide-react";
+import { Box, Package, Container, Edit } from "lucide-react";
 
 interface LabelGeneratorProps {
   prefix: string;
@@ -26,7 +26,7 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
     switch(labelType) {
       case "Crates": return <Box className="h-5 w-5 text-blue-600" />;
       case "Cartons": return <Package className="h-5 w-5 text-green-600" />;
-      case "Pallets": return <Pallet className="h-5 w-5 text-orange-600" />;
+      case "Pallets": return <Container className="h-5 w-5 text-orange-600" />;
       default: return <Edit className="h-5 w-5 text-purple-600" />;
     }
   };

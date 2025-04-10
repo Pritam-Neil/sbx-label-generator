@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import LabelGenerator from "@/components/LabelGenerator";
 import AppHeader from "@/components/AppHeader";
-import { Box, Package, Pallet, Edit } from "lucide-react";
+import { Box, Package, Container, Edit } from "lucide-react";
 
 const Index = () => {
   const [prefix, setPrefix] = useState("");
@@ -40,7 +40,7 @@ const Index = () => {
     switch(labelType) {
       case "Crates": return <Box className="h-6 w-6" />;
       case "Cartons": return <Package className="h-6 w-6" />;
-      case "Pallets": return <Pallet className="h-6 w-6" />;
+      case "Pallets": return <Container className="h-6 w-6" />;
       default: return <Edit className="h-6 w-6" />;
     }
   };

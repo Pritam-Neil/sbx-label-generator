@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Package, Pallet, Edit } from "lucide-react";
+import { Box, Package, Container, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import AppHeader from "@/components/AppHeader";
@@ -34,7 +34,7 @@ const Selection = () => {
       type: "Pallets",
       prefix: "SBPallet",
       description: "Palletized goods with sequential barcoded labels",
-      icon: Pallet,
+      icon: Container,
       color: "bg-orange-100 text-orange-700 border-orange-200",
       iconBg: "bg-orange-50",
     },
