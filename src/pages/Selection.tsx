@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Box, Package, Container, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import AppHeader from "@/components/AppHeader";
 
 const Selection = () => {
   const navigate = useNavigate();
@@ -50,8 +49,6 @@ const Selection = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppHeader />
-      
       <div className="container mx-auto py-12 px-4">
         <div className="max-w-5xl mx-auto text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Label Generator System</h1>
