@@ -11,6 +11,9 @@ import LabelGenerator from "@/components/LabelGenerator";
 import { formatLabel, generateSuffix } from "@/utils/labelUtils";
 import { Box, Package, Container, Edit, Barcode, QrCode } from "lucide-react";
 
+// Local Storage Key for Barcode Type Preference
+const BARCODE_TYPE_STORAGE_KEY = "preferred_barcode_type";
+
 // Persistent storage for the last generated numbers for each type
 const lastGeneratedNumbers = {
   "Crates": 0,
@@ -36,6 +39,19 @@ const Index = () => {
   
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Load saved barcode preference from localStorage on component mount
+  useEffect(() => {
+    const savedBarcodeType = localStorage.getItem(BARCODE_TYPE_STORAGE_KEY) as "1D" | "QR" | null;
+    if (savedBarcodeType) {
+      setBarcodeType(savedBarcodeType);
+    }
+  }, []);
+
+  // Save barcode preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(BARCODE_TYPE_STORAGE_KEY, barcodeType);
+  }, [barcodeType]);
 
   useEffect(() => {
     const state = location.state;
@@ -132,6 +148,12 @@ const Index = () => {
     setShowAdditionalInput(false);
   };
 
+  // Handle barcode type change with local storage update
+  const handleBarcodeTypeChange = (value: "1D" | "QR") => {
+    setBarcodeType(value);
+    toast.success(`Barcode preference saved: ${value} barcode`);
+  };
+
   const isReadOnlyPrefix = labelType !== "Custom";
 
   return (
@@ -179,7 +201,7 @@ const Index = () => {
                     <Label htmlFor="barcodeType" className="text-base">Barcode Type</Label>
                     <RadioGroup 
                       value={barcodeType} 
-                      onValueChange={(value: "1D" | "QR") => setBarcodeType(value)}
+                      onValueChange={handleBarcodeTypeChange}
                       className="flex gap-4"
                     >
                       <div className="flex items-center space-x-2">
@@ -197,6 +219,7 @@ const Index = () => {
                         </div>
                       </div>
                     </RadioGroup>
+                    <p className="text-xs text-muted-foreground">Your barcode preference will be saved automatically</p>
                   </div>
 
                   <div className="space-y-2">
@@ -275,7 +298,7 @@ const Index = () => {
                     <Label className="text-base">Barcode Type:</Label>
                     <RadioGroup 
                       value={barcodeType} 
-                      onValueChange={(value: "1D" | "QR") => setBarcodeType(value)}
+                      onValueChange={handleBarcodeTypeChange}
                       className="flex gap-4"
                     >
                       <div className="flex items-center space-x-2">
