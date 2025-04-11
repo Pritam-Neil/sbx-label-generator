@@ -1,6 +1,7 @@
 
 import React from "react";
 import Barcode from "react-barcode";
+import QRCode from "react-qr-code";
 import { Box, Package, Container, Edit } from "lucide-react";
 import { formatLabel } from "@/utils/labelUtils";
 
@@ -10,6 +11,7 @@ interface LabelGeneratorProps {
   startingCaseNumber?: number;
   labelType: string;
   suffixLimit?: number;
+  barcodeType: "1D" | "QR";
 }
 
 const LabelGenerator: React.FC<LabelGeneratorProps> = ({ 
@@ -17,7 +19,8 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
   caseCount, 
   startingCaseNumber = 1,
   labelType = "Custom",
-  suffixLimit = 4  // Default to 4 digits if not specified
+  suffixLimit = 4,
+  barcodeType = "1D"
 }) => {
   // Generate an array of numbers from startingCaseNumber to startingCaseNumber + caseCount - 1
   const caseNumbers = Array.from(
@@ -81,14 +84,25 @@ const LabelGenerator: React.FC<LabelGeneratorProps> = ({
             </div>
             
             <div className="flex justify-center my-3">
-              <Barcode 
-                value={formatCaseNumber(caseNum)}
-                width={2}
-                height={40}
-                fontSize={14}
-                margin={10}
-                displayValue={true}
-              />
+              {barcodeType === "1D" ? (
+                <Barcode 
+                  value={formatCaseNumber(caseNum)}
+                  width={2}
+                  height={40}
+                  fontSize={14}
+                  margin={10}
+                  displayValue={true}
+                />
+              ) : (
+                <div className="p-3 bg-white">
+                  <QRCode 
+                    value={formatCaseNumber(caseNum)}
+                    size={120}
+                    level="M"
+                  />
+                  <p className="text-center text-xs mt-2">{formatCaseNumber(caseNum)}</p>
+                </div>
+              )}
             </div>
             
             <div className="text-xs text-gray-500 text-center mt-2 flex items-center justify-center">

@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label"; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
 import LabelGenerator from "@/components/LabelGenerator";
 import { formatLabel, generateSuffix } from "@/utils/labelUtils";
-import { Box, Package, Container, Edit } from "lucide-react";
+import { Box, Package, Container, Edit, Barcode, QrCode } from "lucide-react";
 
 // Persistent storage for the last generated numbers for each type
 const lastGeneratedNumbers = {
@@ -30,6 +32,7 @@ const Index = () => {
   const [currentBatchCount, setCurrentBatchCount] = useState(0);
   const [labelType, setLabelType] = useState("Custom");
   const [suffixLimit, setSuffixLimit] = useState(4); // Default suffix limit is 4 digits
+  const [barcodeType, setBarcodeType] = useState<"1D" | "QR">("1D");
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -130,11 +133,9 @@ const Index = () => {
   };
 
   const isReadOnlyPrefix = labelType !== "Custom";
-  const showSuffixLimit = labelType !== "Custom";
 
   return (
     <div className="min-h-screen bg-gray-50">
-      
       <div className="container mx-auto py-8 px-4">
         <Card className={`max-w-3xl mx-auto shadow-lg ${getCardColor()}`}>
           <CardHeader className="border-b">
@@ -152,143 +153,181 @@ const Index = () => {
           </CardHeader>
           
           <CardContent className="pt-6 pb-4">
-            {!generated ? (
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="prefix" className="text-base">Prefix</Label>
-                  <Input
-                    id="prefix"
-                    placeholder="Enter label prefix (e.g. SBX)"
-                    value={prefix}
-                    onChange={(e) => setPrefix(e.target.value)}
-                    className="text-lg"
-                    readOnly={isReadOnlyPrefix}
-                    disabled={isReadOnlyPrefix}
-                  />
-                  {isReadOnlyPrefix && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Standard prefix for {labelType} is pre-configured
-                    </p>
-                  )}
-                </div>
+            {/* Form and buttons section that always stays at the top */}
+            <div className="space-y-6 mb-8">
+              {!generated ? (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="prefix" className="text-base">Prefix</Label>
+                    <Input
+                      id="prefix"
+                      placeholder="Enter label prefix (e.g. SBX)"
+                      value={prefix}
+                      onChange={(e) => setPrefix(e.target.value)}
+                      className="text-lg"
+                      readOnly={isReadOnlyPrefix}
+                      disabled={isReadOnlyPrefix}
+                    />
+                    {isReadOnlyPrefix && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Standard prefix for {labelType} is pre-configured
+                      </p>
+                    )}
+                  </div>
 
-                {showSuffixLimit && (
-                  <div className="space-y-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                    <Label htmlFor="suffixInfo" className="text-base">Suffix Format</Label>
-                    <div className="flex items-center">
-                      <div className="bg-white px-3 py-2 border rounded-md text-sm font-mono">
-                        {prefix}<span className="text-blue-600">{generateSuffix(1, suffixLimit)}</span> → {prefix}<span className="text-blue-600">{generateSuffix(999, suffixLimit)}</span> → {prefix}<span className="text-blue-600">{generateSuffix(10000, suffixLimit)}</span>
+                  <div className="space-y-2">
+                    <Label htmlFor="barcodeType" className="text-base">Barcode Type</Label>
+                    <RadioGroup 
+                      value={barcodeType} 
+                      onValueChange={(value: "1D" | "QR") => setBarcodeType(value)}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1D" id="1d-barcode" />
+                        <div className="flex items-center gap-2">
+                          <Barcode className="h-4 w-4" />
+                          <Label htmlFor="1d-barcode">1D Barcode</Label>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="QR" id="qr-code" />
+                        <div className="flex items-center gap-2">
+                          <QrCode className="h-4 w-4" />
+                          <Label htmlFor="qr-code">QR Code</Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="caseCount" className="text-base">Number of {labelType}</Label>
+                    <Input
+                      id="caseCount"
+                      type="number"
+                      placeholder={`Enter the number of ${labelType.toLowerCase()} (max 100)`}
+                      value={caseCount}
+                      onChange={(e) => setCaseCount(e.target.value)}
+                      min="1"
+                      max="100"
+                      className="text-lg"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col space-y-4">
+                  {showAdditionalInput ? (
+                    <div className="mb-6 space-y-2 p-4 bg-green-50 border border-green-100 rounded-md">
+                      <Label htmlFor="additionalCount" className="text-base">How many more labels do you need?</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="additionalCount"
+                          type="number"
+                          placeholder="Enter number of additional items"
+                          value={additionalCount}
+                          onChange={(e) => setAdditionalCount(e.target.value)}
+                          min="1"
+                          max="100"
+                          className="text-lg"
+                          autoFocus
+                        />
+                        <Button 
+                          onClick={handleGenerateMore}
+                          className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                          disabled={!additionalCount}
+                        >
+                          Generate
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setShowAdditionalInput(false)}
+                        >
+                          Cancel
+                        </Button>
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      Using {suffixLimit}-digit suffix. When numeric limit is reached (9999), labels will continue with alphanumeric format (A001).
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="caseCount" className="text-base">Number of {labelType}</Label>
-                  <Input
-                    id="caseCount"
-                    type="number"
-                    placeholder={`Enter the number of ${labelType.toLowerCase()} (max 100)`}
-                    value={caseCount}
-                    onChange={(e) => setCaseCount(e.target.value)}
-                    min="1"
-                    max="100"
-                    className="text-lg"
-                  />
-                </div>
-              </div>
-            ) : (
-              <>
-                {showAdditionalInput && (
-                  <div className="mb-6 space-y-2 p-4 bg-green-50 border border-green-100 rounded-md">
-                    <Label htmlFor="additionalCount" className="text-base">How many more labels do you need?</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        id="additionalCount"
-                        type="number"
-                        placeholder="Enter number of additional items"
-                        value={additionalCount}
-                        onChange={(e) => setAdditionalCount(e.target.value)}
-                        min="1"
-                        max="100"
-                        className="text-lg"
-                        autoFocus
-                      />
+                  ) : (
+                    <div className="flex justify-between">
                       <Button 
-                        onClick={handleGenerateMore}
-                        className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
-                        disabled={!additionalCount}
+                        variant="outline" 
+                        onClick={handleReset}
                       >
-                        Generate
+                        Generate New Labels
                       </Button>
-                      <Button 
-                        variant="outline"
-                        onClick={() => setShowAdditionalInput(false)}
-                      >
-                        Cancel
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline"
+                          onClick={() => setShowAdditionalInput(true)}
+                          className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                        >
+                          Generate More
+                        </Button>
+                        <Button 
+                          onClick={() => window.print()}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          Print Labels
+                        </Button>
+                      </div>
                     </div>
+                  )}
+
+                  <div className="flex items-center gap-4 mt-2">
+                    <Label className="text-base">Barcode Type:</Label>
+                    <RadioGroup 
+                      value={barcodeType} 
+                      onValueChange={(value: "1D" | "QR") => setBarcodeType(value)}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1D" id="1d-barcode-gen" />
+                        <div className="flex items-center gap-2">
+                          <Barcode className="h-4 w-4" />
+                          <Label htmlFor="1d-barcode-gen">1D Barcode</Label>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="QR" id="qr-code-gen" />
+                        <div className="flex items-center gap-2">
+                          <QrCode className="h-4 w-4" />
+                          <Label htmlFor="qr-code-gen">QR Code</Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
                   </div>
-                )}
-                
-                <LabelGenerator 
-                  prefix={prefix}
-                  caseCount={currentBatchCount}
-                  startingCaseNumber={totalCasesGenerated - currentBatchCount + 1}
-                  labelType={labelType}
-                  suffixLimit={suffixLimit}
-                />
-              </>
+                </div>
+              )}
+            </div>
+            
+            {/* Generated labels section that comes after the buttons */}
+            {generated && (
+              <LabelGenerator 
+                prefix={prefix}
+                caseCount={currentBatchCount}
+                startingCaseNumber={totalCasesGenerated - currentBatchCount + 1}
+                labelType={labelType}
+                suffixLimit={suffixLimit}
+                barcodeType={barcodeType}
+              />
             )}
           </CardContent>
 
-          <CardFooter className="flex justify-between border-t pt-4">
-            {generated ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={handleReset}
-                >
-                  Generate New Labels
-                </Button>
-                <div className="flex space-x-2">
-                  <Button 
-                    variant="outline"
-                    onClick={() => setShowAdditionalInput(true)}
-                    className="bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                    disabled={showAdditionalInput}
-                  >
-                    Generate More
-                  </Button>
-                  <Button 
-                    onClick={() => window.print()}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Print Labels
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={() => navigate("/")}
-                >
-                  Change Type
-                </Button>
-                <Button 
-                  onClick={handleGenerateLabels}
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={(labelType === "Custom" && !prefix) || !caseCount}
-                >
-                  Generate Labels
-                </Button>
-              </>
-            )}
-          </CardFooter>
+          {!generated && (
+            <CardFooter className="flex justify-between border-t pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate("/")}
+              >
+                Change Type
+              </Button>
+              <Button 
+                onClick={handleGenerateLabels}
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={(labelType === "Custom" && !prefix) || !caseCount}
+              >
+                Generate Labels
+              </Button>
+            </CardFooter>
+          )}
         </Card>
       </div>
     </div>
